@@ -1,0 +1,107 @@
+<html>
+	<head>
+	</head>
+	<script type="text/javascript">
+	    function fx(x) {
+			return 2500 / x;
+		}
+		
+		function trans(x, y, xBias, yBias) {
+			var coords = new Object();
+			coords.x = xBias + x;
+			coords.y = yBias - y;
+			
+			return coords;
+		}
+	</script>
+    <body>
+	    <canvas id="coords" width="500" height="500"></canvas>
+		<script type="text/javascript">
+			var len = 500;
+	        var c = document.getElementById("coords");
+	        var ctx = c.getContext("2d");
+			
+			// center
+			var center = {x : 250, y : 250};
+			
+			// xoy
+			ctx.beginPath();
+	        ctx.strokeStyle = "black";
+			// x
+			var xb = trans(-250, 0, center.x, center.y)
+			var xe = trans(250, 0, center.x, center.y)
+			// x
+			ctx.moveTo(xb.x, xb.y);
+			ctx.lineTo(xe.x, xe.y);
+			ctx.stroke();
+			
+			// y
+			var yb = trans(0, 250, center.x, center.y)
+			var ye = trans(0, -250, center.x, center.y)
+			// 
+			ctx.moveTo(yb.x, yb.y);
+			ctx.lineTo(ye.x, ye.y);
+			ctx.stroke();
+			
+			
+			ctx.setLineDash([2, 5]);
+			ctx.lineWidth = 0.5;
+			ctx.beginPath();
+	        ctx.strokeStyle = "gray";
+			for(var i = 0; i <= len / 50; i++) {
+				if(i == 5)
+					continue;
+			
+			    ctx.moveTo(0, i * 50);
+				ctx.lineTo(len, i * 50);
+				ctx.stroke();
+				
+				ctx.moveTo(i * 50, 0);
+				ctx.lineTo(i * 50, len);
+				ctx.stroke();
+			}
+			
+			// ctx.beginPath();
+	        // ctx.strokeStyle = "red";
+	        // for(var i = 1; i < 200; i++) {
+			// 	var x = i;
+			// 	
+			// 	// begin
+			// 	var ts = trans(x, fx(x), 100, 200);
+			//     ctx.moveTo(ts.x, ts.y);
+			// 	
+			// 	// end
+			// 	var tse = trans(x + 1, fx(x + 1), 100, 200);
+			// 	ctx.lineTo(tse.x, tse.y);
+			// 	ctx.stroke();
+			// }
+			
+			// p0
+			var tsp0 = trans(100, 200, center.x, center.y);
+			// p1
+			var tsp1 = trans(0, -200, center.x, center.y);
+			// p2
+			var tsp2 = trans(-100, 200, center.x, center.y);
+			
+			ctx.setLineDash([]);
+			ctx.lineWidth = 1;
+			ctx.beginPath();
+			ctx.strokeStyle = "blue";
+			ctx.moveTo(tsp0.x, tsp0.y);
+			ctx.quadraticCurveTo(tsp1.x, tsp1.y, tsp2.x, tsp2.y);
+			ctx.stroke();
+			
+			// p0
+			var p0 = trans(5, 250, center.x, center.y);
+			// p1
+			var p1 = trans(5, 50, center.x, center.y);
+			// p2
+			var p2 = trans(50, 5, center.x, center.y);
+			// p2
+			var p3 = trans(250, 5, center.x, center.y);
+			ctx.moveTo(p0.x, p0.y);
+			ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+			ctx.stroke();
+	    </script>
+	</body>
+</html>

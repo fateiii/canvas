@@ -1,0 +1,175 @@
+<html>
+	<head>
+	</head>
+	<script type="text/javascript">
+	    var width = 500;
+		var height = 500;
+
+		var config = {
+		    id : "coords",
+		    width : width,
+		    height : height,
+			unit : 28,
+			center : { x : width / 2, y : height / 2 },
+			//vertex : [{ x : , y : }, { x : , y : }],
+			// function
+			move : function(vector) {
+			    this.center.x += vector.x;
+			    this.center.y += vector.y;
+				
+				//this.vertex[0] = { x : , y : };
+			}
+		}
+		
+		//
+	    window.onload = function(){
+			// init
+		    init(config);
+			
+			// draw
+			drawCoords(config);
+		};
+		
+		function init(config) {
+		    var coords = document.getElementById(config.id);
+		    coords.width = config.width;
+		    coords.height = config.height;
+			coords.onmousemove = function(event) {
+			    if(config.mousedown && config.moving) {
+				    config.moving = false;
+					setTimeout(function(){config.moving = true}, 40)
+				    
+					// re draw
+				    config.move({
+					    x : event.x - config.mousePosition.x,
+						y : event.y - config.mousePosition.y
+					});
+				    drawCoords(config);
+					
+					// update mouse position
+					config.mousePosition = {
+				        x : event.x,
+				        y : event.y
+				    }
+				}
+			};
+			coords.onmousedown = function(event) {
+			    this.style.cursor = "move";
+			    config.mousedown = true;
+				config.moving = true;
+				config.mousePosition = {
+				    x : event.x,
+					y : event.y
+				}
+			};
+			coords.onmouseup = function(event) {
+			    this.style.cursor = "default";
+			    config.mousedown = false
+				config.moving = false;
+			};
+			
+			config.position = {
+			    x : coords.getBoundingClientRect().left,
+				y : coords.getBoundingClientRect().top
+			};
+			config.ctx = coords.getContext("2d");
+		}
+		
+		function drawCoords(config) {
+		    // clear
+		    config.ctx.clearRect(0, 0, config.width, config.height);
+		    
+			// draw border
+			var b0 = { x : 0, y : 0 };
+			var b1 = { x : config.width, y : 0 };
+			var b2 = { x : config.width, y : config.height };
+			var b3 = { x : 0, y : config.height };
+			drawLineDirect(config, b0, b1, "gray");
+			drawLineDirect(config, b1, b2, "gray");
+			drawLineDirect(config, b2, b3, "gray");
+			drawLineDirect(config, b3, b0, "gray");
+			
+			// draw xoy
+			// x
+			var xBegin = { x : - config.center.x, y : 0 };
+			var xEnd = { x : config.width - config.center.x, y : 0 };
+			drawLine(config, xBegin, xEnd, "black");
+			// y
+			var yBegin = { x : 0, y : config.center.y };
+			var yEnd = { x : 0, y : config.center.y - config.height };
+			drawLine(config, yBegin, yEnd, "black");
+			// 0
+			drawText(config, {
+			    text : '0', 
+				position: { x : 5, y : 5 },
+				color : 'blue',
+				textAlign : 'left',
+				textBaseline : 'top'
+			});
+		}
+		
+		function drawLineDirect(config, begin, end, color) {
+			// draw
+			var ctx = config.ctx;
+		    ctx.beginPath();
+	        ctx.strokeStyle = color;
+		    ctx.moveTo(begin.x, begin.y);
+			ctx.lineTo(end.x, end.y);
+			ctx.stroke();
+		}
+		
+		function drawLine(config, begin, end, color) {
+		    // trans
+			var transBegin = trans(begin, config.center);
+			var transEnd = trans(end, config.center);
+			
+			// draw
+			var ctx = config.ctx;
+		    ctx.beginPath();
+	        ctx.strokeStyle = color;
+		    ctx.moveTo(transBegin.x, transBegin.y);
+			ctx.lineTo(transEnd.x, transEnd.y);
+			ctx.stroke();
+		}
+		
+		function drawText(config, text) {
+		    // trans
+			var t = trans(text.position, config.center);
+		
+		    // draw
+		    var ctx = config.ctx;
+	        ctx.fillStyle = text.color;
+			ctx.textAlign = text.textAlign;
+			ctx.textBaseline = text.textBaseline;
+			ctx.fillText(text.text, t.x, t.y)
+		}
+		
+		function drawTextDirect(config, text) {
+		    // draw
+		    var ctx = config.ctx;
+	        ctx.fillStyle = text.color;
+			ctx.textAlign = text.textAlign;
+			ctx.textBaseline = text.textBaseline;
+			ctx.fillText(text.text, text.position.x, text.position.y);
+		}
+
+		function trans(point, center) {
+			var trans = new Object();
+			trans.x = center.x + point.x;
+			trans.y = center.y - point.y;
+			
+			return trans;
+		}
+		
+		function transReverse(point, center) {
+			var trans = new Object();
+			trans.x = point.x - center.x;
+			trans.y = center.y - point.y;
+			
+			return trans;
+		}
+	</script>
+    <body>
+	    <canvas id="coords"/>
+	</body>
+</html>

@@ -1,0 +1,197 @@
+<html>
+    <head>
+    </head>
+	<script type="text/javascript">
+        /** Ball definition */
+        function Ball (radius) {
+            this.position = [0, 0];
+            this.velocity = [0, 0];
+            if (radius) {
+                this.radius = radius;
+            } else {
+                this.radius = 1;
+            }
+
+            // function
+            this.setPosition = function(x, y) {
+                this.position[0] = x;
+                this.position[1] = y;
+                return this;
+            }
+
+            this.setVelocity = function(x, y) {
+                this.velocity[0] = x;
+                this.velocity[1] = y;
+                return this;
+            }
+        }
+            
+        /** Simulator definition */
+        function Simulator (id) {
+            this.container = document.getElementById(id);
+            this.width = this.container.width;
+            this.height = this.container.height;
+            this.cnvContext = this.container.getContext("2d");
+            this.acceleration = [0, 0];
+
+            // function
+            this.setWidth = function (width) {
+                this.width = width;
+                this.container.width = width;
+            }
+
+            this.setHeight = function (height) {
+                this.height = height;
+                this.container.height = height;
+            }
+
+            this.setAcceleration = function (x, y) {
+                this.acceleration[0] = x;
+                this.acceleration[1] = y;
+            }
+        }
+
+        window.onload = function() {
+            var simulator = new Simulator("simulator");
+            simulator.setWidth(500);
+            simulator.setHeight(500);
+            simulator.setAcceleration(0, 1);
+
+            var ball = new Ball(20);
+            ball.setPosition(100, 100);
+            ball.setVelocity(2, 0);
+
+            var ball2 = new Ball(20);
+            ball2.setPosition(200, 115);
+            ball2.setVelocity(-2, 0);
+
+            var balls = [ball, ball2];
+
+            // ll
+            setInterval(function() {
+                // update position and velocity
+                for (i in balls) {
+                    var b = balls[i];
+                    b.setVelocity(b.velocity[0] + simulator.acceleration[0], b.velocity[1] + simulator.acceleration[1]);
+                    b.setPosition(b.position[0] + b.velocity[0], b.position[1] + b.velocity[1]);
+                }
+
+                // check collision
+                for (i in balls) {
+                    // check bound-collision
+                    var c1 = checkBoundCollision(simulator, balls[i]);
+
+                    if (c1) {
+                        balls[i].setPosition(c1.position[0], c1.position[1]);
+                        balls[i].setVelocity(c1.velocity[0], c1.velocity[1]);
+                    } else {
+                        // check ball-collision
+                        checkCollision(balls, Number(i));
+                    }
+                }
+
+                // repain
+                repain(simulator, balls);
+            }, 40);
+        }
+
+        function checkCollision(balls, bIndex) {
+            for (var i = bIndex + 1; i < balls.length; i++) {
+                checkSingleCollision(balls[bIndex], balls[i]);   
+            }
+        }
+
+        function checkSingleCollision(b1, b2) {
+            //
+            var collision = [b1.position[0] - b2.position[0], b1.position[1] - b2.position[1]];
+
+            // distance
+            var distance = Math.sqrt(collision[0]**2 + collision[1]**2);
+            if (distance > b1.radius + b2.radius) {
+                return null;
+            }
+            collision[0] /= distance;
+            collision[1] /= distance;
+
+            var aci = b1.velocity[0] * collision[0] + b1.velocity[1] * collision[1];
+            var bci = b2.velocity[0] * collision[0] + b2.velocity[1] * collision[1];
+
+            var acf = bci;
+            var bcf = aci;
+
+            b1.velocity[0] += (acf - aci) * collision[0];
+            b1.velocity[1] += (acf - aci) * collision[1];
+
+            b2.velocity[0] += (bcf - bci) * collision[0];
+            b2.velocity[1] += (bcf - bci) * collision[1];
+        }
+
+        function checkBoundCollision(simulator, ball) {
+            var result = { position: [ball.position[0], ball.position[1]], velocity: [ball.velocity[0], ball.velocity[1]] };
+
+            // bound check x
+            if(ball.position[0] - ball.radius <= 0) {
+                result.position[0] = 2 * ball.radius - ball.position[0];
+                result.velocity[0] = -ball.velocity[0];
+                return result;
+            }
+            if(ball.position[0] + ball.radius >= simulator.width) {
+                result.position[0] = 2 * (simulator.width - ball.radius) - ball.position[0];
+                result.velocity[0] = -ball.velocity[0];
+                return result;
+            }
+
+            // bound check y
+            if(ball.position[1] - ball.radius <= 0) {
+                result.position[1] = 2 * ball.radius - ball.position[1];
+                result.velocity[1] = -ball.velocity[1];
+                return result;
+            }
+            if(ball.position[1] + ball.radius >= simulator.height) {
+                result.position[1] = 2 * (simulator.height - ball.radius) - ball.position[1];
+                result.velocity[1] = -ball.velocity[1];
+                return result;
+            }
+
+            return null;
+        }
+
+        function repain(simulator, balls) {
+            simulator.cnvContext.clearRect(0, 0, simulator.width, simulator.height);
+			// draw border
+			var b0 = { x : 0, y : 0 };
+			var b1 = { x : simulator.width, y : 0 };
+			var b2 = { x : simulator.width, y : simulator.height };
+			var b3 = { x : 0, y : simulator.height };
+			drawLineDirect(simulator, b0, b1, "gray");
+			drawLineDirect(simulator, b1, b2, "gray");
+			drawLineDirect(simulator, b2, b3, "gray");
+			drawLineDirect(simulator, b3, b0, "gray");
+
+            for (i in balls){
+                drawArcDirect(simulator, balls[i])
+            }
+        }
+
+        function drawArcDirect(simulator, ball) {
+            // draw
+            var ctx = simulator.cnvContext;
+		    ctx.beginPath();
+            ctx.arc(ball.position[0], ball.position[1], ball.radius, 0, 2 * Math.PI);
+			ctx.stroke();
+        }
+
+		function drawLineDirect(simulator, begin, end, color) {
+			// draw
+            var ctx = simulator.cnvContext;
+		    ctx.beginPath();
+	        ctx.strokeStyle = color;
+		    ctx.moveTo(begin.x, begin.y);
+			ctx.lineTo(end.x, end.y);
+			ctx.stroke();
+		}
+    </script>
+    <body>
+	    <canvas id="simulator"/>
+	</body>
+</html>
