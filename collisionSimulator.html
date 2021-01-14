@@ -55,17 +55,32 @@
             var simulator = new Simulator("simulator");
             simulator.setWidth(500);
             simulator.setHeight(500);
-            simulator.setAcceleration(0, 1);
+            simulator.setAcceleration(0, 0);
 
-            var ball = new Ball(20);
-            ball.setPosition(100, 100);
-            ball.setVelocity(2, 0);
+            var balls = [];
+            outer:
+            for (var i = 0; i < 20;) {
+                var radius = Math.random() * 15 + 15;
+                var positionX = Math.random() * (simulator.width - 2 * radius) + radius;
+                var positionY = Math.random() * (simulator.height - 2 * radius) + radius;
+                var velocityX = (Math.random() - 0.5) * 4;
+                var velocityY = (Math.random() - 0.5) * 4;
 
-            var ball2 = new Ball(20);
-            ball2.setPosition(200, 115);
-            ball2.setVelocity(-2, 0);
+                var ball = new Ball(radius);
+                ball.setPosition(positionX, positionY);
+                ball.setVelocity(velocityX, velocityY);
 
-            var balls = [ball, ball2];
+                // check
+                for (b in balls) {
+                    var collision = checkSingleCollision(balls[b], ball);
+                    if (collision) {
+                        continue outer;
+                    }
+                }
+                
+                i++;
+                balls.push(ball);
+            }
 
             // ll
             setInterval(function() {
@@ -108,8 +123,16 @@
             // distance
             var distance = Math.sqrt(collision[0]**2 + collision[1]**2);
             if (distance > b1.radius + b2.radius) {
-                return null;
+                return false;
             }
+
+            var nextPosition = []
+
+            if (b1.velocity[0] * collision[1] - b1.velocity[1] * collision[0] == 0
+                    || b1.velocity[0] * collision[0] - b1.velocity[1] * collision[1] == 0) {
+                return true;
+            }
+
             collision[0] /= distance;
             collision[1] /= distance;
 
@@ -124,6 +147,8 @@
 
             b2.velocity[0] += (bcf - bci) * collision[0];
             b2.velocity[1] += (bcf - bci) * collision[1];
+
+            return true;
         }
 
         function checkBoundCollision(simulator, ball) {
