@@ -4,8 +4,8 @@
 	<script type="text/javascript">
         /** Ball definition */
         function Ball (radius) {
-            this.position = [0, 0];
-            this.velocity = [0, 0];
+            this.position = [0, 0]; // 位置
+            this.velocity = [0, 0]; // 速度向量
             if (radius) {
                 this.radius = radius;
             } else {
@@ -32,7 +32,7 @@
             this.width = this.container.width;
             this.height = this.container.height;
             this.cnvContext = this.container.getContext("2d");
-            this.acceleration = [0, 0];
+            this.acceleration = [0, 0]; // 加速度向量
 
             // function
             this.setWidth = function (width) {
@@ -52,19 +52,21 @@
         }
 
         window.onload = function() {
+            // 创建 Simulator 并设定范围, 加速度矢量
             var simulator = new Simulator("simulator");
             simulator.setWidth(500);
             simulator.setHeight(500);
-            simulator.setAcceleration(0, 0);
+            simulator.setAcceleration(0, 0.05);
 
+            // 循环创建 100 个球
             var balls = [];
             outer:
-            for (var i = 0; i < 20;) {
-                var radius = Math.random() * 15 + 15;
+            for (var i = 0; i < 100;) {
+                var radius = (Math.random() + 1) * 12;
                 var positionX = Math.random() * (simulator.width - 2 * radius) + radius;
                 var positionY = Math.random() * (simulator.height - 2 * radius) + radius;
-                var velocityX = (Math.random() - 0.5) * 4;
-                var velocityY = (Math.random() - 0.5) * 4;
+                var velocityX = (Math.random() - 0.5) * 2;
+                var velocityY = (Math.random() - 0.5) * 2;
 
                 var ball = new Ball(radius);
                 ball.setPosition(positionX, positionY);
@@ -82,7 +84,7 @@
                 balls.push(ball);
             }
 
-            // ll
+            // 通过定时器循环执行核心逻辑
             setInterval(function() {
                 // update position and velocity
                 for (i in balls) {
@@ -126,10 +128,11 @@
                 return false;
             }
 
-            var nextPosition = []
-
-            if (b1.velocity[0] * collision[1] - b1.velocity[1] * collision[0] == 0
-                    || b1.velocity[0] * collision[0] - b1.velocity[1] * collision[1] == 0) {
+            var nextPositionB1 = [b1.position[0] + b1.velocity[0], b1.position[1] + b1.velocity[1]];
+            var nextPositionB2 = [b2.position[0] + b2.velocity[0], b2.position[1] + b2.velocity[1]];
+            var nextCollision= [nextPositionB1[0] - nextPositionB2[0], nextPositionB1[1] - nextPositionB2[1]];
+            var nextDistance = Math.sqrt(nextCollision[0]**2 + nextCollision[1]**2);
+            if (nextDistance > distance) {
                 return true;
             }
 
@@ -194,7 +197,7 @@
 			drawLineDirect(simulator, b3, b0, "gray");
 
             for (i in balls){
-                drawArcDirect(simulator, balls[i])
+                drawArcDirect(simulator, balls[i]);
             }
         }
 
